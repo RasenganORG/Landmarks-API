@@ -4,12 +4,23 @@ const firebase = require('../db');
 const User = require('../models/user');
 const firestore = firebase.firestore();
 
+const generateToken = () => {
+  const token = Math.random().toString(36).substring(2);
+  return token + token;
+};
+
 const addUser = async (req, res, next) => {
   try {
     const data = req.body;
-    console.log(data);
-    await firestore.collection('users').doc().set(data);
-    res.send('User saved successfully');
+    console.log('sent from frontend', data);
+    const user = {
+      ...data,
+      _id: firestore.collection('users').doc().id,
+      token: generateToken(),
+    };
+
+    await firestore.collection('users').doc(user._id).set(user);
+    res.status(201).send(user);
   } catch (error) {
     res.status(400).send(error.message);
     console.log(error);
@@ -23,16 +34,14 @@ const getAllUsers = async (req, res, next) => {
     const usersArray = [];
 
     if (data.empty) {
-      res.status(404).send('No student record found');
+      res.status(404).send('No users found');
     } else {
       data.forEach((doc) => {
         const user = new User(
-          doc.id,
-          doc.data().firstName,
-          doc.data().lastName,
-          doc.data().displayName,
-          doc.data().avatar,
-          doc.data().status
+          doc.data()._id,
+          doc.data().name,
+          doc.data().email,
+          doc.data().password
         );
         usersArray.push(user);
       });
@@ -45,13 +54,17 @@ const getAllUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const user = firestore.collection('users').doc(id);
-    const data = await user.get();
-    if (!data.exists) {
-      res.status(404).send('User with the given ID not found !');
+    const name = req.params.name;
+    const usersCollection = firestore.collection('users');
+    const userSnapshot = await usersCollection.where('name', '==', name).get();
+
+    if (userSnapshot.empty) {
+      res.status(404).send('User with the given name not found !');
     } else {
-      res.send(data.data());
+      let user;
+      userSnapshot.forEach((doc) => (user = { ...doc.data() }));
+      console.log('user from db:', user);
+      res.send(user);
     }
   } catch (error) {
     res.status(404).send(error.message);
