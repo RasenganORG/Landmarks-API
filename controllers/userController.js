@@ -3,6 +3,7 @@
 const firebase = require('../db');
 const User = require('../models/user');
 const firestore = firebase.firestore();
+const { deleteCollection } = require('../helpers/deleteCollection');
 
 const generateToken = () => {
   const token = Math.random().toString(36).substring(2);
@@ -93,10 +94,20 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
+const deleteAllUsers = async (req, res, next) => {
+  try {
+    const isEmpty = await deleteCollection(firestore, 'users', 3);
+    if (isEmpty) res.status(200).send('All users have been deleted');
+  } catch (error) {
+    res.status(404).send(error.message);
+  }
+};
+
 module.exports = {
   addUser,
   getAllUsers,
   getUser,
   updateUser,
   deleteUser,
+  deleteAllUsers,
 };
