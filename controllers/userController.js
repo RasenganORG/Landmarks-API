@@ -55,8 +55,11 @@ const getAllUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
+    // Get user name from GET Params
     const name = req.params.name;
+    // Reference to Firestore 'users' collection
     const usersCollection = firestore.collection('users');
+    // Reference to a QuerySnapshot whith all users that have the requested name
     const userSnapshot = await usersCollection.where('name', '==', name).get();
 
     if (userSnapshot.empty) {
