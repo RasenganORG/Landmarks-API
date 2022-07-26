@@ -7,11 +7,12 @@ class User {
   //   this.avatar = avatar;
   //   this.status = status;
   // }
-  constructor(id, name, email, password) {
-    this.id = id;
+  constructor(_id, name, email, password, token) {
+    this._id = _id;
     this.name = name;
     this.email = email;
     this.password = password;
+    this.token = token;
   }
 }
 

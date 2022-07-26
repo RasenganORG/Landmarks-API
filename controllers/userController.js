@@ -4,21 +4,38 @@ const firebase = require('../db');
 const User = require('../models/user');
 const firestore = firebase.firestore();
 const { deleteCollection } = require('../helpers/deleteCollection');
+const jwt = require('jsonwebtoken');
 
-const generateToken = () => {
-  const token = Math.random().toString(36).substring(2);
-  return token + token;
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
 };
 
 const addUser = async (req, res, next) => {
   try {
-    const data = req.body;
-    console.log('sent from frontend', data);
+    // name, email, password
+    const registerForm = req.body;
+    console.log('sent from frontend', registerForm);
+    // Reference to Firestore 'users' collection
+    const usersCollection = firestore.collection('users');
+    // Reference to a QuerySnapshot whith all users that have the requested name
+    const userSnapshot = await usersCollection
+      .where('name', '==', registerForm.name)
+      .get();
+    // Check if user already exists:
+    if (!userSnapshot.empty) {
+      throw new Error('User already exists !');
+    }
+
     const user = {
-      ...data,
+      ...registerForm,
       _id: firestore.collection('users').doc().id,
-      token: generateToken(),
     };
+
+    user.token = generateToken(user._id);
+
+    console.log(user);
 
     await firestore.collection('users').doc(user._id).set(user);
     res.status(201).send(user);
@@ -42,7 +59,8 @@ const getAllUsers = async (req, res, next) => {
           doc.data()._id,
           doc.data().name,
           doc.data().email,
-          doc.data().password
+          doc.data().password,
+          doc.data().token
         );
         usersArray.push(user);
       });
