@@ -74,19 +74,50 @@ const getAllUsers = async (req, res, next) => {
 const getUser = async (req, res, next) => {
   try {
     // Get user name from GET Params
-    const name = req.params.name;
+    const email = req.params.email;
     // Reference to Firestore 'users' collection
     const usersCollection = firestore.collection('users');
-    // Reference to a QuerySnapshot whith all users that have the requested name
-    const userSnapshot = await usersCollection.where('name', '==', name).get();
+    // Reference to a QuerySnapshot whith all users that have the requested email
+    const userSnapshot = await usersCollection
+      .where('email', '==', email)
+      .get();
 
     if (userSnapshot.empty) {
-      res.status(404).send('User with the given name not found !');
+      res.status(404).send('User with the given email not found !');
     } else {
       let user;
+
       userSnapshot.forEach((doc) => (user = { ...doc.data() }));
       console.log('user from db:', user);
       res.send(user);
+    }
+  } catch (error) {
+    res.status(404).send(error.message);
+  }
+};
+const getLoggedUser = async (req, res, next) => {
+  try {
+    // Get user name from GET Params
+    const email = req.params.email;
+    const pwd = req.query.pwd;
+    // Reference to Firestore 'users' collection
+    const usersCollection = firestore.collection('users');
+    // Reference to a QuerySnapshot whith all users that have the requested email
+    const userSnapshot = await usersCollection
+      .where('email', '==', email)
+      .get();
+
+    if (userSnapshot.empty) {
+      res.status(404).send('User with the given email not found!');
+    } else {
+      let user;
+
+      userSnapshot.forEach((doc) => (user = { ...doc.data() }));
+      console.log('user from db:', user);
+
+      const result = user.password === pwd ? user : null;
+      if (result) res.send(result);
+      else res.status(404).send('Username or password invalid!');
     }
   } catch (error) {
     res.status(404).send(error.message);
@@ -128,6 +159,7 @@ module.exports = {
   addUser,
   getAllUsers,
   getUser,
+  getLoggedUser,
   updateUser,
   deleteUser,
   deleteAllUsers,
