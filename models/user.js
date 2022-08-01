@@ -7,8 +7,8 @@ class User {
   //   this.avatar = avatar;
   //   this.status = status;
   // }
-  constructor(_id, name, email, password, token) {
-    this._id = _id;
+  constructor(id, name, email, password, token) {
+    this.id = id;
     this.name = name;
     this.email = email;
     this.password = password;

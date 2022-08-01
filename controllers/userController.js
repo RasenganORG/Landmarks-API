@@ -30,14 +30,14 @@ const addUser = async (req, res, next) => {
 
     const user = {
       ...registerForm,
-      _id: firestore.collection('users').doc().id,
+      id: firestore.collection('users').doc().id,
     };
 
-    user.token = generateToken(user._id);
+    user.token = generateToken(user.id);
 
     console.log(user);
 
-    await firestore.collection('users').doc(user._id).set(user);
+    await firestore.collection('users').doc(user.id).set(user);
     res.status(201).send(user);
   } catch (error) {
     res.status(400).send(error.message);
@@ -56,7 +56,7 @@ const getAllUsers = async (req, res, next) => {
     } else {
       data.forEach((doc) => {
         const user = new User(
-          doc.data()._id,
+          doc.data().id,
           doc.data().name,
           doc.data().email,
           doc.data().password,
