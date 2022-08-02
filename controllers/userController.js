@@ -25,7 +25,7 @@ const addUser = async (req, res, next) => {
       .get();
     // Check if user already exists:
     if (!userSnapshot.empty) {
-      throw new Error('User already exists !');
+      throw new Error('Username is taken !');
     }
 
     const user = {
@@ -68,6 +68,7 @@ const getAllUsers = async (req, res, next) => {
     }
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -93,8 +94,10 @@ const getUser = async (req, res, next) => {
     }
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
+
 const getLoggedUser = async (req, res, next) => {
   try {
     // Get user name from GET Params
@@ -108,7 +111,7 @@ const getLoggedUser = async (req, res, next) => {
       .get();
 
     if (userSnapshot.empty) {
-      res.status(404).send('User with the given email not found!');
+      res.status(404).send('Username or password invalid!');
     } else {
       let user;
 
@@ -121,6 +124,7 @@ const getLoggedUser = async (req, res, next) => {
     }
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -133,6 +137,7 @@ const updateUser = async (req, res, next) => {
     res.send('User data updated successfully');
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -143,6 +148,7 @@ const deleteUser = async (req, res, next) => {
     res.send('User deleted !');
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -152,6 +158,7 @@ const deleteAllUsers = async (req, res, next) => {
     if (isEmpty) res.status(200).send('All users have been deleted');
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
