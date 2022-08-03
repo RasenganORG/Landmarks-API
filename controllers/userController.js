@@ -75,16 +75,14 @@ const getAllUsers = async (req, res, next) => {
 const getUser = async (req, res, next) => {
   try {
     // Get user name from GET Params
-    const email = req.params.email;
+    const name = req.params.name;
     // Reference to Firestore 'users' collection
     const usersCollection = firestore.collection('users');
-    // Reference to a QuerySnapshot whith all users that have the requested email
-    const userSnapshot = await usersCollection
-      .where('email', '==', email)
-      .get();
+    // Reference to a QuerySnapshot whith all users that have the requested name
+    const userSnapshot = await usersCollection.where('name', '==', name).get();
 
     if (userSnapshot.empty) {
-      res.status(404).send('User with the given email not found !');
+      res.status(404).send('User not found !');
     } else {
       let user;
 
