@@ -1,6 +1,8 @@
+'use strict';
+
 const express = require('express');
 const {
-  addUser,
+  addUserToDB,
   getAllUsers,
   getUser,
   getLoggedUser,
@@ -11,11 +13,14 @@ const {
 
 const router = express.Router();
 
-router.post('/user', addUser);
+router.post('/user', addUserToDB);
+
 router.get('/users', getAllUsers);
-router.get('/user/:name', getUser);
+router.get('/user/:id', getUser);
 router.get('/getLoggedUser/:email', getLoggedUser);
+
 router.put('/user/:id', updateUser);
+
 router.delete('/user/:id', deleteUser);
 router.delete('/users', deleteAllUsers);
 
