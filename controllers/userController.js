@@ -129,9 +129,9 @@ const updateUser = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    const userRefernce = firestore.collection('users').doc(id);
-    await userRefernce.update(data);
-    const user = await userRefernce.get();
+    const userReference = firestore.collection('users').doc(id);
+    await userReference.update(data);
+    const user = await userReference.get();
     res.status(200).send(user.data());
   } catch (error) {
     res.status(404).send(error.message);

@@ -2,14 +2,7 @@
 
 const firebase = require('../db');
 const firestore = firebase.firestore();
-
-const Room = require('../models/room');
-
-// Add room to room collection
-// update User doc to add room to room list
-
-// based on invite update Room doc to add members to member list
-// invite to /rooms/:roomID
+const { deleteCollection } = require('../helpers/deleteCollection');
 
 const addRoomToDB = async (req, res, next) => {
   try {
@@ -61,8 +54,8 @@ const getUserRooms = async (req, res, next) => {
       .where('members', 'array-contains', userID)
       .get();
 
-    if (roomsSnapshot.empty) {
-      req.staus(104).send(`You don't have any rooms yet.`);
+    if (roomsSnapshot.size === 0) {
+      res.send(204);
     } else {
       const roomsArray = [];
 
@@ -70,24 +63,6 @@ const getUserRooms = async (req, res, next) => {
       console.log('roomsArray', roomsArray);
       res.status(200).send(roomsArray);
     }
-
-    // if (data.empty) {
-    //   res.status(404).send('No rooms found');
-    // } else {
-    //   data.forEach((doc) => {
-    //     const room = new Room(
-    //       doc.data().id,
-    //       doc.data().name,
-    //       doc.data().ownerID,
-    //       doc.data().map,
-    //       doc.data().events,
-    //       doc.data().members,
-    //       doc.data().chatID
-    //     );
-    //     roomsArray.push(room);
-    //   });
-    //   res.status(200).send(roomsArray);
-    // }
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
@@ -98,9 +73,10 @@ const updateRoom = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    const room = firestore.collection('rooms').doc(id);
-    await room.update(data);
-    res.status(200).send('Room was successfully edited !');
+    const roomReference = firestore.collection('rooms').doc(id);
+    await roomReference.update(data);
+    const room = await roomReference.get();
+    res.status(200).send(room.data());
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
