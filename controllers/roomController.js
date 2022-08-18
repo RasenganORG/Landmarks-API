@@ -7,17 +7,21 @@ const { deleteCollection } = require('../helpers/deleteCollection');
 const addRoomToDB = async (req, res, next) => {
   try {
     // name, ownerID, map, events, members, chatID
-    const roomForm = req.body;
-    console.log('Received roomForm from fe:', roomForm);
+    const data = req.body;
+    console.log('Received data from fe:', data);
     // Reference to Firestore 'rooms' collection
     const roomsCollection = firestore.collection('rooms');
+    const roomMembership = firestore.collection('roomMembership');
 
     const room = {
-      ...roomForm,
+      ...data,
       id: roomsCollection.doc().id,
     };
 
     await roomsCollection.doc(room.id).set(room);
+    const foo = {};
+    foo[`${room.ownerID}`] = room.id;
+    await roomMembership.doc('roomMembership').set(foo);
     // send back the room object
     console.log('Sending response:', room);
     res.status(201).send(room);
@@ -44,7 +48,7 @@ const getRoomByID = async (req, res, next) => {
   }
 };
 
-const getUserRooms = async (req, res, next) => {
+const getRoomsForUser = async (req, res, next) => {
   try {
     const userID = req.params.userID;
     // Reference to Firestore 'rooms' collection
@@ -55,7 +59,7 @@ const getUserRooms = async (req, res, next) => {
       .get();
 
     if (roomsSnapshot.size === 0) {
-      res.send(204);
+      res.status(404).send('No rooms found!');
     } else {
       const roomsArray = [];
 
@@ -107,7 +111,7 @@ const deleteAllRooms = async (req, res, next) => {
 module.exports = {
   addRoomToDB,
   getRoomByID,
-  getUserRooms,
+  getRoomsForUser,
   updateRoom,
   deleteRoom,
   deleteAllRooms,

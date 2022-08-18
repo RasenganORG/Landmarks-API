@@ -31,7 +31,6 @@ const addUserToDB = async (req, res, next) => {
     const user = {
       ...registerForm,
       id: usersCollection.doc().id,
-      roomList: [],
     };
 
     user.token = generateToken(user.id);
@@ -112,8 +111,7 @@ const getAllUsers = async (req, res, next) => {
           doc.data().name,
           doc.data().email,
           doc.data().password,
-          doc.data().token,
-          doc.data().roomList
+          doc.data().token
         );
         usersArray.push(user);
       });

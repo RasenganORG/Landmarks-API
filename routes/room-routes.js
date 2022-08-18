@@ -4,7 +4,7 @@ const express = require('express');
 const {
   addRoomToDB,
   getRoomByID,
-  getUserRooms,
+  getRoomsForUser,
   updateRoom,
   deleteRoom,
   deleteAllRooms,
@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('/room', addRoomToDB);
 
 router.get('/room/:id', getRoomByID);
-router.get('/:userID/rooms/', getUserRooms);
+router.get('/:userID/rooms/', getRoomsForUser);
 
 router.put('/room/:id', updateRoom);
 
