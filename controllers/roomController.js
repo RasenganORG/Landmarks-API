@@ -14,19 +14,23 @@ const createRoom = async (req, res, next) => {
     const roomsCollection = firestore.collection('rooms');
     const roomMembership = firestore.collection('roomMembership');
 
-    // // add room to DB
-    // await roomsCollection.doc(room.id).set(room);
+    // add room to DB
+    await roomsCollection.doc(room.id).set(room);
 
     // update roomMembership with userID: [roomID]
+    // get document with user id which contains 'rooms' reference id array
     const docRef = await roomMembership.doc(`${room.ownerID}`).get();
+    // if the doc(userID) doesn't exist, create one
     if (!docRef.exists) {
       await roomMembership
         .doc(`${room.ownerID}`)
-        .set({ rooms: [`${room.id}`] });
+        // the 'rooms' array holds references to the rooms from the DB
+        .set({ rooms: [roomsCollection.doc(`${room.id}`)] });
     } else {
-      await roomMembership
-        .doc(`${room.ownerID}`)
-        .update({ rooms: FieldValue.arrayUnion(`${room.id}`) });
+      // else update the 'rooms' array with a new reference room id
+      await roomMembership.doc(`${room.ownerID}`).update({
+        rooms: FieldValue.arrayUnion(roomsCollection.doc(`${room.id}`)),
+      });
     }
     res.sendStatus(200);
   } catch (error) {
@@ -55,36 +59,75 @@ const getRoomByID = async (req, res, next) => {
 const getRoomsForUser = async (req, res, next) => {
   try {
     const userID = req.params.userID;
-    // Reference to Firestore 'rooms' collection
-    const roomsCollection = firestore.collection('rooms');
-    // Reference to a QuerySnapshot whith all rooms that contains the userID
-    const roomsSnapshot = await roomsCollection
-      .where('members', 'array-contains', userID)
-      .get();
+    // Reference to Firestore collections
+    const roomMembership = firestore.collection('roomMembership');
+    const usersCollection = firestore.collection('users');
 
-    if (roomsSnapshot.size === 0) {
+    const userRooms = await roomMembership.doc(userID).get();
+    const roomsArray = [];
+    const membersIDs = new Set();
+    if (!userRooms.exists) {
       res.status(404).send('No rooms found!');
     } else {
-      const roomsArray = [];
-
-      roomsSnapshot.forEach((doc) => roomsArray.push(doc.data()));
-      console.log('roomsArray', roomsArray);
-      res.status(200).send(roomsArray);
+      for (const docu of userRooms.data().rooms) {
+        // get room objects from DB by reference
+        const room = await docu.get();
+        const roomRef = firestore.doc(`/rooms/${room.data().id}`);
+        // get the user id that has this room.id inside its rooms array
+        const members = await roomMembership
+          .where('rooms', 'array-contains', roomRef)
+          .get();
+        members.forEach((doc) => membersIDs.add(doc.id));
+        roomsArray.push(room.data());
+      }
     }
+
+    const membersArray = [];
+    // populate membersArray with user objects
+    for (const id of membersIDs) {
+      const user = await usersCollection.doc(id).get();
+      membersArray.push({
+        id: user.data().id,
+        email: user.data().email,
+        name: user.data().name,
+      });
+    }
+
+    const rooms = [
+      ...roomsArray.map((room) => {
+        return { ...room, members: membersArray, chat: [] };
+      }),
+    ];
+
+    console.log('seding to FE', rooms);
+    res.status(200).send(rooms);
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
   }
 };
 
-const updateRoom = async (req, res, next) => {
+const addUserToRoomMembership = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const data = req.body;
-    const roomReference = firestore.collection('rooms').doc(id);
-    await roomReference.update(data);
-    const room = await roomReference.get();
-    res.status(200).send(room.data());
+    const roomID = req.params.id;
+    const userID = req.body;
+    const roomMembership = firestore.collection('roomMembership');
+
+    const userReference = await roomMembership.doc(userID).get();
+    // if the doc(userID) doesn't exist, create one
+    if (!userReference.exists) {
+      await roomMembership
+        .doc(userID)
+        // the 'rooms' array holds references to the rooms from the DB
+        .set({ rooms: [roomsCollection.doc(roomID)] });
+    } else {
+      // else update the 'rooms' array with a new reference room id
+      await roomMembership.doc(userID).update({
+        rooms: FieldValue.arrayUnion(roomsCollection.doc(roomID)),
+      });
+    }
+
+    res.sendStatus(200);
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
@@ -116,7 +159,7 @@ module.exports = {
   createRoom,
   getRoomByID,
   getRoomsForUser,
-  updateRoom,
+  addUserToRoomMembership,
   deleteRoom,
   deleteAllRooms,
 };

@@ -5,7 +5,7 @@ const {
   createRoom,
   getRoomByID,
   getRoomsForUser,
-  updateRoom,
+  addUserToRoomMembership,
   deleteRoom,
   deleteAllRooms,
 } = require('../controllers/roomController');
@@ -17,7 +17,7 @@ router.post('/room', createRoom);
 router.get('/room/:id', getRoomByID);
 router.get('/:userID/rooms/', getRoomsForUser);
 
-router.put('/room/:id', updateRoom);
+router.put('/room/:id', addUserToRoomMembership);
 
 router.delete('/room/:id', deleteRoom);
 router.delete('/rooms', deleteAllRooms);
