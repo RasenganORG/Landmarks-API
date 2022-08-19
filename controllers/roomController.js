@@ -3,28 +3,32 @@
 const firebase = require('../db');
 const firestore = firebase.firestore();
 const { deleteCollection } = require('../helpers/deleteCollection');
+const { FieldValue } = require('firebase-admin/firestore');
 
-const addRoomToDB = async (req, res, next) => {
+const createRoom = async (req, res, next) => {
   try {
     // name, ownerID, map, events, members, chatID
-    const data = req.body;
-    console.log('Received data from fe:', data);
+    const room = req.body;
+    console.log('Received room from fe:', room);
     // Reference to Firestore 'rooms' collection
     const roomsCollection = firestore.collection('rooms');
     const roomMembership = firestore.collection('roomMembership');
 
-    const room = {
-      ...data,
-      id: roomsCollection.doc().id,
-    };
+    // // add room to DB
+    // await roomsCollection.doc(room.id).set(room);
 
-    await roomsCollection.doc(room.id).set(room);
-    const foo = {};
-    foo[`${room.ownerID}`] = room.id;
-    await roomMembership.doc('roomMembership').set(foo);
-    // send back the room object
-    console.log('Sending response:', room);
-    res.status(201).send(room);
+    // update roomMembership with userID: [roomID]
+    const docRef = await roomMembership.doc(`${room.ownerID}`).get();
+    if (!docRef.exists) {
+      await roomMembership
+        .doc(`${room.ownerID}`)
+        .set({ rooms: [`${room.id}`] });
+    } else {
+      await roomMembership
+        .doc(`${room.ownerID}`)
+        .update({ rooms: FieldValue.arrayUnion(`${room.id}`) });
+    }
+    res.sendStatus(200);
   } catch (error) {
     res.status(400).send(error.message);
     console.log(error);
@@ -109,7 +113,7 @@ const deleteAllRooms = async (req, res, next) => {
 };
 
 module.exports = {
-  addRoomToDB,
+  createRoom,
   getRoomByID,
   getRoomsForUser,
   updateRoom,

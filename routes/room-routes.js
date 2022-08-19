@@ -2,7 +2,7 @@
 
 const express = require('express');
 const {
-  addRoomToDB,
+  createRoom,
   getRoomByID,
   getRoomsForUser,
   updateRoom,
@@ -12,7 +12,7 @@ const {
 
 const router = express.Router();
 
-router.post('/room', addRoomToDB);
+router.post('/room', createRoom);
 
 router.get('/room/:id', getRoomByID);
 router.get('/:userID/rooms/', getRoomsForUser);
