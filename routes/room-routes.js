@@ -17,7 +17,7 @@ router.post('/room', createRoom);
 router.get('/room/:id', getRoomByID);
 router.get('/:userID/rooms/', getRoomsForUser);
 
-router.put('/room/:id', addUserToRoomMembership);
+router.put('/room/:token', addUserToRoomMembership);
 
 router.delete('/room/:id', deleteRoom);
 router.delete('/rooms', deleteAllRooms);
