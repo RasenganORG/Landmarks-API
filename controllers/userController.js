@@ -3,15 +3,95 @@
 const firebase = require('../db');
 const User = require('../models/user');
 const firestore = firebase.firestore();
+const { deleteCollection } = require('../helpers/deleteCollection');
+const jwt = require('jsonwebtoken');
 
-const addUser = async (req, res, next) => {
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '30d',
+  });
+};
+
+const addUserToDB = async (req, res, next) => {
   try {
-    const data = req.body;
-    console.log(data);
-    await firestore.collection('users').doc().set(data);
-    res.send('User saved successfully');
+    // name, email, password
+    const registerForm = req.body;
+    console.log('sent from frontend', registerForm);
+    // Reference to Firestore 'users' collection
+    const usersCollection = firestore.collection('users');
+    // Reference to a QuerySnapshot whith all users that have the requested name
+    const userSnapshot = await usersCollection
+      .where('name', '==', registerForm.name)
+      .get();
+    // Check if user already exists:
+    if (!userSnapshot.empty) {
+      throw new Error('Username is taken !');
+    }
+
+    const user = {
+      ...registerForm,
+      id: usersCollection.doc().id,
+    };
+
+    user.token = generateToken(user.id);
+
+    console.log('Added User in DB:', user);
+
+    await usersCollection.doc(user.id).set(user);
+    res.status(201).send(user);
   } catch (error) {
     res.status(400).send(error.message);
+    console.log(error);
+  }
+};
+
+const getUser = async (req, res, next) => {
+  try {
+    // Get user name from GET Params
+    const id = req.params.id;
+    // Reference to Firestore 'users' collection
+    const usersCollection = firestore.collection('users');
+    // Reference to user document snapshot
+    const user = await usersCollection.doc(id).get();
+
+    if (!user.exists) {
+      throw new Error('User not found !');
+    } else {
+      console.log('user from db:', user.data());
+      res.status(200).send(user.data());
+    }
+  } catch (error) {
+    res.status(404).send(error.message);
+    console.log(error);
+  }
+};
+
+const getLoggedUser = async (req, res, next) => {
+  try {
+    // Get user name from GET Params
+    const email = req.params.email;
+    const pwd = req.query.pwd;
+    // Reference to Firestore 'users' collection
+    const usersCollection = firestore.collection('users');
+    // Reference to a QuerySnapshot whith all users that have the requested email
+    const userSnapshot = await usersCollection
+      .where('email', '==', email)
+      .get();
+
+    if (userSnapshot.empty) {
+      res.status(404).send('Username or password invalid!');
+    } else {
+      let user;
+
+      userSnapshot.forEach((doc) => (user = { ...doc.data() }));
+      console.log('user from db:', user);
+
+      const result = user.password === pwd ? user : null;
+      if (result) res.status(200).send(result);
+      else res.status(404).send('Username or password invalid!');
+    }
+  } catch (error) {
+    res.status(404).send(error.message);
     console.log(error);
   }
 };
@@ -23,38 +103,23 @@ const getAllUsers = async (req, res, next) => {
     const usersArray = [];
 
     if (data.empty) {
-      res.status(404).send('No student record found');
+      res.status(404).send('No users found');
     } else {
       data.forEach((doc) => {
         const user = new User(
-          doc.id,
-          doc.data().firstName,
-          doc.data().lastName,
-          doc.data().displayName,
-          doc.data().avatar,
-          doc.data().status
+          doc.data().id,
+          doc.data().name,
+          doc.data().email,
+          doc.data().password,
+          doc.data().token
         );
         usersArray.push(user);
       });
-      res.send(usersArray);
+      res.status(200).send(usersArray);
     }
   } catch (error) {
     res.status(404).send(error.message);
-  }
-};
-
-const getUser = async (req, res, next) => {
-  try {
-    const id = req.params.id;
-    const user = firestore.collection('users').doc(id);
-    const data = await user.get();
-    if (!data.exists) {
-      res.status(404).send('User with the given ID not found !');
-    } else {
-      res.send(data.data());
-    }
-  } catch (error) {
-    res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -62,11 +127,13 @@ const updateUser = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    const user = firestore.collection('users').doc(id);
-    await user.update(data);
-    res.send('User data updated successfully');
+    const userReference = firestore.collection('users').doc(id);
+    await userReference.update(data);
+    const user = await userReference.get();
+    res.status(200).send(user.data());
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
@@ -74,16 +141,29 @@ const deleteUser = async (req, res, next) => {
   try {
     const id = req.params.id;
     await firestore.collection('users').doc(id).delete();
-    res.send('User deleted !');
+    res.status(200).send('User deleted !');
   } catch (error) {
     res.status(404).send(error.message);
+    console.log(error);
+  }
+};
+
+const deleteAllUsers = async (req, res, next) => {
+  try {
+    const isEmpty = await deleteCollection(firestore, 'users', 3);
+    if (isEmpty) res.status(204).send('All users have been deleted');
+  } catch (error) {
+    res.status(404).send(error.message);
+    console.log(error);
   }
 };
 
 module.exports = {
-  addUser,
+  addUserToDB,
   getAllUsers,
   getUser,
+  getLoggedUser,
   updateUser,
   deleteUser,
+  deleteAllUsers,
 };
