@@ -1,11 +1,11 @@
 'use strict';
 
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const config = require('./config');
-const userRoutes = require('./routes/user-routes');
-const roomRoutes = require('./routes/room-routes');
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import config from './config.js';
+import userRoutes from './routes/user-routes.js';
+import roomRoutes from './routes/room-routes.js';
 
 const app = express();
 

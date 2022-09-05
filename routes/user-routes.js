@@ -1,19 +1,19 @@
 'use strict';
 
-const express = require('express');
-const {
-  addUserToDB,
+import express from 'express';
+import {
+  register,
   getAllUsers,
   getUser,
   getLoggedUser,
   updateUser,
   deleteUser,
   deleteAllUsers,
-} = require('../controllers/userController');
+} from '../controllers/userController.js';
 
 const router = express.Router();
 
-router.post('/user', addUserToDB);
+router.post('/user', register);
 
 router.get('/users', getAllUsers);
 router.get('/user/:id', getUser);
@@ -24,6 +24,6 @@ router.put('/user/:id', updateUser);
 router.delete('/user/:id', deleteUser);
 router.delete('/users', deleteAllUsers);
 
-module.exports = {
+export default {
   routes: router,
 };

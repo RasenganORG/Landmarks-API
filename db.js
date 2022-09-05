@@ -1,10 +1,10 @@
 'use strict';
 
-const admin = require('firebase-admin');
-const config = require('./config');
+import admin from 'firebase-admin';
+import config from './config.js';
 
 const db = admin.initializeApp({
   credential: admin.credential.cert(config.serviceAccountKey),
 });
 
-module.exports = db;
+export default db;

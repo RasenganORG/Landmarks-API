@@ -1,10 +1,11 @@
 'use strict';
 
-const firebase = require('../db');
-const User = require('../models/user');
+import firebase from '../db.js';
+import deleteCollection from '../helpers/deleteCollection.js';
+import User from '../models/user.js';
+import jwt from 'jsonwebtoken';
+
 const firestore = firebase.firestore();
-const { deleteCollection } = require('../helpers/deleteCollection');
-const jwt = require('jsonwebtoken');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -12,11 +13,18 @@ const generateToken = (id) => {
   });
 };
 
-const addUserToDB = async (req, res, next) => {
+const register = async (req, res, next) => {
   try {
     // name, email, password
     const registerForm = req.body;
     console.log('sent from frontend', registerForm);
+    // Check if email or password were sent
+    if (!registerForm.email || !registerForm.password) {
+      return res.status(422).json({
+        email: 'Email is required !',
+        password: 'Password is required !',
+      });
+    }
     // Reference to Firestore 'users' collection
     const usersCollection = firestore.collection('users');
     // Reference to a QuerySnapshot whith all users that have the requested name
@@ -151,15 +159,15 @@ const deleteUser = async (req, res, next) => {
 const deleteAllUsers = async (req, res, next) => {
   try {
     const isEmpty = await deleteCollection(firestore, 'users', 3);
-    if (isEmpty) res.status(204).send('All users have been deleted');
+    if (isEmpty) res.status(202).send('All users have been deleted');
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
   }
 };
 
-module.exports = {
-  addUserToDB,
+export {
+  register,
   getAllUsers,
   getUser,
   getLoggedUser,

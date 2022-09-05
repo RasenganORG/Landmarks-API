@@ -1,8 +1,8 @@
 'use strict';
 
-const dotenv = require('dotenv');
-const assert = require('assert');
-const serviceAccountKey = require('./serviceAccountKey.json');
+import dotenv from 'dotenv';
+import assert from 'assert';
+import serviceAccountKey from './serviceAccountKey.js';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const { PORT, HOST, HOST_URL } = process.env;
 assert(PORT, 'PORT is required');
 assert(HOST, 'HOST is required');
 
-module.exports = {
+export default {
   port: PORT,
   host: HOST,
   url: HOST_URL,

@@ -1,0 +1,15 @@
+export default {
+  type: 'service_account',
+  project_id: 'landmarks-api-857f8',
+  private_key_id: '3995c887ae6f2bf010d986d7456ea7d91088b247',
+  private_key:
+    '-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDg2et5+r2osLnP\ndl+F4RU0M7Ope9Joa9v0dK83CR8Pt7sq2gkil4yDXGUEgsvsuQzND0TpPRdLHcOz\nw5HOTis4munYRWzB+6GuXpFYeg1J2NDEeINGrq3tdejZEmJwLlnXNhqmao2iI8dT\nVPx3zCVEujSwhNoAKiP34cCnye/gtd5nBFNVZUzp/2QSI5zZ27PjtheTU7XhnoV3\nu0msIDzvgj7+xitxyVAMpMsA6qDXl18g/11Gd+UmyXTuKbe1ifT001MpowkQk82M\nNeCiPpUM+B4LsDmwJIVqdOqGqf0t7eQ0cvFl3TqbXYcaeCXAJe5VMdf0XTmuqJy0\nML2Pj7BLAgMBAAECggEABHnz8gDJhtK3NLmHoMEWAez86NbSD7R2c5vS3A+T7TqR\njxDIR6oTfjnGZGbgNlRt5t4WkGZgHxA2zM6oUNdpcMGpqOv4dmBoXAAo+H48OESl\neD2ioMGN1+FV/6r9a0NR21ZfPckFmrYkMTw8vHvR5zuJjnFrFr+jlDtEuKtQrxJ5\n1FLQufmIc9RcBCCkEb01NFe9u7i8VUafFos8B44RXWJzK7QyX8Rrz9bhBntDPI7B\nDaGPU+XrwDlkML9WW2SS0zNcBKqwELo5vuEsw9aAVJb7rp7s+2oRJcmME5M8Vhm1\nbyYq88HZpsjcVtcIEyBJ6uwFVSh8WOHMsEivDBtffQKBgQD6C5j9oR8qm2x2xRF7\nf0XN8UfKx6/8mBak06LcXoCbiHPw4ofYsGX1XNPgFfv4zR8aQhJjFi1pRxGHSuRW\nVlcF18eiAq7+4niZXuMcKl0Fycez7aOoUTjHPXvGUe3jKXeuoxj1z+2dEPuOh9ti\n4hAhTxrSxd1IrttqnNkE9Urb9QKBgQDmNLn+ktASwclL7nd0xEyoTiMdXQxkKZF8\nXettB0YhdgEVMKdNY3RVLKqg8OonwS0ZROwGsF4WKjT2tmgv7OBful7EFNFiiPXB\nNbixMY2G2eS42ogVeTmor8C2zj2miUP4/Q0MZe+ZwN9NpSAFV0ssIjFZhFhAWUFs\n8BqUh7LzPwKBgQC6LEBxN7IY6zhLBlgJ961ltSybEys5i5PwjZNJOSPQqjyJMmGr\nOUvw8Hjg8/10NmXeCyvdkvmk1UF71otErWyF8S+2tQDOzpi0uS2oHvK8CI0krt+X\nx0HbNzAdbYsOBCYUZWOEQpjMxYRHj2gNq/wOkPOL0777CxZbvwTm6CwgsQKBgQCq\nByWdDqiaQgFAkQgv+VC5OsUayf/99una1q+tHqNA0ZypHv9i3GMvCceZCXeZF0gN\nEufVZOyJKHFoC3/WbfmnGsslvk6MnaYOJ3Sbg4MJp+QUWGwMmDXrDqyjGJ9WYqoO\nvDCoCJ44jMkh2yVUbI48MaELggGAvaviH1EyhSu6FwKBgQD5Eb3eiTA7DFKskqh+\nA0JEbdsVyPEhEhePTd1UICDZFPeJSVKqf8Sgtk4TFyQ35Ht0SEA6JiW0G88HqZ9p\noJzCXe01SLSQ5vchHHIwxCWgMEcRSD8x9ALXsrLJmKlrWv1Gz0ChHYYBdtmpyQaE\nEonJstAtK6eLanyt3y+VKN8mlw==\n-----END PRIVATE KEY-----\n',
+  client_email:
+    'firebase-adminsdk-ehqrk@landmarks-api-857f8.iam.gserviceaccount.com',
+  client_id: '100764987957581498421',
+  auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+  token_uri: 'https://oauth2.googleapis.com/token',
+  auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
+  client_x509_cert_url:
+    'https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ehqrk%40landmarks-api-857f8.iam.gserviceaccount.com',
+};

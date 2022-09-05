@@ -31,4 +31,4 @@ async function deleteCollection(db, collectionPath, batchSize) {
   });
 }
 
-module.exports = { deleteCollection };
+export default deleteCollection;
