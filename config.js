@@ -3,6 +3,7 @@
 import dotenv from 'dotenv';
 import assert from 'assert';
 import serviceAccountKey from './serviceAccountKey.js';
+import firebaseConfig from './firebaseConfig.js';
 
 dotenv.config();
 
@@ -16,4 +17,5 @@ export default {
   host: HOST,
   url: HOST_URL,
   serviceAccountKey: serviceAccountKey,
+  firebaseConfig: firebaseConfig,
 };

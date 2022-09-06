@@ -1,10 +1,10 @@
 'use strict';
 
-import firebase from '../db.js';
+import { firebaseAdmin, firebaseApp } from '../firebase.js';
 import deleteCollection from '../helpers/deleteCollection.js';
 import { FieldValue } from 'firebase-admin/firestore';
 
-const firestore = firebase.firestore();
+const firestore = firebaseAdmin.firestore();
 
 const createRoom = async (req, res, next) => {
   try {

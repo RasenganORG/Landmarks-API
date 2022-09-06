@@ -1,11 +1,12 @@
 'use strict';
 
-import firebase from '../db.js';
+import { firebaseAdmin } from '../firebase.js';
 import deleteCollection from '../helpers/deleteCollection.js';
 import User from '../models/user.js';
 import jwt from 'jsonwebtoken';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
-const firestore = firebase.firestore();
+const firestore = firebaseAdmin.firestore();
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -16,40 +17,32 @@ const generateToken = (id) => {
 const register = async (req, res, next) => {
   try {
     // name, email, password
-    const registerForm = req.body;
-    console.log('sent from frontend', registerForm);
+    const { name, email, password, avatar } = req.body;
+    console.log('sent from frontend', { name, email, password });
     // Check if email or password were sent
-    if (!registerForm.email || !registerForm.password) {
+    if (!email || !password) {
       return res.status(422).json({
         email: 'Email is required !',
         password: 'Password is required !',
       });
     }
-    // Reference to Firestore 'users' collection
-    const usersCollection = firestore.collection('users');
-    // Reference to a QuerySnapshot whith all users that have the requested name
-    const userSnapshot = await usersCollection
-      .where('name', '==', registerForm.name)
-      .get();
-    // Check if user already exists:
-    if (!userSnapshot.empty) {
-      throw new Error('Username is taken !');
-    }
+    const auth = getAuth();
 
-    const user = {
-      ...registerForm,
-      id: usersCollection.doc().id,
-    };
-
-    user.token = generateToken(user.id);
-
-    console.log('Added User in DB:', user);
-
-    await usersCollection.doc(user.id).set(user);
-    res.status(201).send(user);
+    const userResponse = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    console.log(userResponse.user.uid);
+    const userr = auth.currentUser;
+    console.log(userr);
+    // res.status(201).send(user);
   } catch (error) {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+
     res.status(400).send(error.message);
-    console.log(error);
+    console.log(errorCode, errorMessage);
   }
 };
 
