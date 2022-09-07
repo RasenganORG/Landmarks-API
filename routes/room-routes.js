@@ -1,14 +1,14 @@
 'use strict';
 
-const express = require('express');
-const {
+import express from 'express';
+import {
   createRoom,
   getRoomByID,
   getRoomsForUser,
   addUserToRoomMembership,
   deleteRoom,
   deleteAllRooms,
-} = require('../controllers/roomController');
+} from '../controllers/roomController.js';
 
 const router = express.Router();
 
@@ -22,6 +22,6 @@ router.put('/room/:token', addUserToRoomMembership);
 router.delete('/room/:id', deleteRoom);
 router.delete('/rooms', deleteAllRooms);
 
-module.exports = {
+export default {
   routes: router,
 };

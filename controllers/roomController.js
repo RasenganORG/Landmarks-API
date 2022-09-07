@@ -1,9 +1,10 @@
 'use strict';
 
-const firebase = require('../db');
-const firestore = firebase.firestore();
-const { deleteCollection } = require('../helpers/deleteCollection');
-const { FieldValue } = require('firebase-admin/firestore');
+import { firebaseAdmin } from '../firebase.js';
+import deleteCollection from '../helpers/deleteCollection.js';
+import { FieldValue } from 'firebase-admin/firestore';
+
+const firestore = firebaseAdmin.firestore();
 
 const createRoom = async (req, res, next) => {
   try {
@@ -106,7 +107,6 @@ const getRoomsForUser = async (req, res, next) => {
         }),
       ];
 
-      console.log('Sending to FE', rooms);
       res.status(200).send(rooms);
     }
   } catch (error) {
@@ -180,7 +180,7 @@ const deleteAllRooms = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   createRoom,
   getRoomByID,
   getRoomsForUser,
