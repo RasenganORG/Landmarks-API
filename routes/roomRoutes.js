@@ -22,6 +22,4 @@ router.put('/room/:token', addUserToRoomMembership);
 router.delete('/room/:id', deleteRoom);
 router.delete('/rooms', deleteAllRooms);
 
-export default {
-  routes: router,
-};
+export default router;
