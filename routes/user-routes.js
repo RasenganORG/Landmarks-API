@@ -3,9 +3,10 @@
 import express from 'express';
 import {
   register,
+  login,
+  logout,
   getAllUsers,
   getUser,
-  getLoggedUser,
   updateUser,
   deleteUser,
   deleteAllUsers,
@@ -13,11 +14,12 @@ import {
 
 const router = express.Router();
 
-router.post('/user', register);
+router.post('/register', register);
+router.post('/login', login);
+router.get('/logout', logout);
 
 router.get('/users', getAllUsers);
 router.get('/user/:id', getUser);
-router.get('/getLoggedUser/:email', getLoggedUser);
 
 router.put('/user/:id', updateUser);
 
