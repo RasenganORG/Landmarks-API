@@ -1,6 +1,6 @@
 'use strict';
 
-import { firebaseAdmin } from '../firebase.js';
+import { firebaseAdmin, firebaseApp } from '../firebase.js';
 import deleteCollection from '../helpers/deleteCollection.js';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -8,7 +8,7 @@ const firestore = firebaseAdmin.firestore();
 
 const createRoom = async (req, res, next) => {
   try {
-    // name, ownerID, map, events, inviteToken, members, chatID
+    // name, ownerID, map, events, inviteToken, members, chat
     const room = req.body;
     console.log('Received room from fe:', room);
     // Reference to Firestore 'rooms' collection
@@ -127,30 +127,33 @@ const addUserToRoomMembership = async (req, res, next) => {
       .where('inviteToken', '==', roomToken)
       .get();
     // Check if inviteToken is valid
-    if (roomSnapshot.empty) throw new Error('Invalid invite token !');
-    let room = null;
-    roomSnapshot.forEach((doc) => (room = { ...doc.data() }));
-    console.log('room from db:', room);
-
-    // PUT roomID to roomMembership-> UserID->rooms
-    const userReference = await roomMembership.doc(userID).get();
-    // if the doc(userID) doesn't exist, create one
-    if (!userReference.exists) {
-      await roomMembership
-        .doc(userID)
-        // the 'rooms' array holds references to the rooms from the DB
-        .set({ rooms: [roomsCollection.doc(room.id)] });
+    if (roomSnapshot.empty) {
+      throw new Error('Invalid invite token !');
     } else {
-      // else update the 'rooms' array with a new reference room id
-      // arrayUnion does not duplicate values
-      await roomMembership.doc(userID).update({
-        rooms: FieldValue.arrayUnion(roomsCollection.doc(room.id)),
-      });
+      let room = null;
+      roomSnapshot.forEach((doc) => (room = { ...doc.data() }));
+      console.log('room from db:', room);
+
+      // PUT roomID to roomMembership-> UserID->rooms
+      const userReference = await roomMembership.doc(userID).get();
+      // if the doc(userID) doesn't exist, create one
+      if (!userReference.exists) {
+        await roomMembership
+          .doc(userID)
+          // the 'rooms' array holds references to the rooms from the DB
+          .set({ rooms: [roomsCollection.doc(room.id)] });
+      } else {
+        // else update the 'rooms' array with a new reference room id
+        // arrayUnion does not duplicate values
+        await roomMembership.doc(userID).update({
+          rooms: FieldValue.arrayUnion(roomsCollection.doc(room.id)),
+        });
+      }
+
+      // Add chat and members to room
+
+      res.status(200).send(room);
     }
-
-    // Add chat and members to room
-
-    res.status(200).send(room);
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);
@@ -160,7 +163,21 @@ const addUserToRoomMembership = async (req, res, next) => {
 const deleteRoom = async (req, res, next) => {
   try {
     const id = req.params.id;
-    await firestore.collection('rooms').doc(id).delete();
+    const roomsCollection = firestore.collection('rooms');
+    const roomMembership = firestore.collection('roomMembership');
+    // DELETE room for 'rooms' collection
+    await roomsCollection.doc(id).delete();
+    const snapshot = await roomMembership.get();
+    snapshot.forEach((doc) => {
+      console.log(doc.id, '=>', doc.data());
+    });
+    const querySnapshot = await roomMembership.get();
+    // DELETE all rooms inside user document from 'roomMembership' collection
+    querySnapshot.forEach(async (doc) => {
+      await doc.ref.update({
+        rooms: FieldValue.arrayRemove(roomsCollection.doc(id)),
+      });
+    });
     res.status(200).send('Room deleted !');
   } catch (error) {
     res.status(404).send(error.message);
