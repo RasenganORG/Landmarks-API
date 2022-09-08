@@ -1,5 +1,4 @@
 import { firebaseAdmin } from '../firebase.js';
-import deleteCollection from '../helpers/deleteCollection.js';
 import { FieldValue } from 'firebase-admin/firestore';
 
 const firestore = firebaseAdmin.firestore();
@@ -12,4 +11,28 @@ const createChat = async (req, res, next) => {
   }
 };
 
-export { createChat };
+const addMessage = async (req, res, next) => {
+  try {
+    const { chatID, message } = req.body;
+    const chatsCollection = firestore.collection('chats');
+    await chatsCollection.doc(chatID).update({
+      messages: FieldValue.arrayUnion(message),
+    });
+    const chatRef = await chatsCollection.doc(chatID).get();
+    res.status(200).send(chatRef.data());
+  } catch (error) {}
+};
+
+const getMessages = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const chatsCollection = firestore.collection('chats');
+    const chatRef = await chatsCollection.doc(id).get();
+    const orderedMessages = chatRef
+      .data()
+      .messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    res.status(200).send(orderedMessages);
+  } catch (error) {}
+};
+
+export { createChat, addMessage, getMessages };

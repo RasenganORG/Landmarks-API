@@ -12,14 +12,14 @@ import {
 
 const router = express.Router();
 
-router.post('/room', createRoom);
+router.post('/createRoom', createRoom);
 
-router.get('/room/:id', getRoomByID);
+router.get('/:id', getRoomByID);
 router.get('/:userID/rooms/', getRoomsForUser);
 
-router.put('/room/:token', addUserToRoomMembership);
+router.put('/invite/:token', addUserToRoomMembership);
 
-router.delete('/room/:id', deleteRoom);
-router.delete('/rooms', deleteAllRooms);
+router.delete('/delete/:id', deleteRoom);
+router.delete('/deleteAll', deleteAllRooms);
 
 export default router;

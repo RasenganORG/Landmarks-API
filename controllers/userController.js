@@ -18,7 +18,7 @@ const getUser = async (req, res, next) => {
     if (!user.exists) {
       throw new Error('User not found !');
     } else {
-      console.log('user from db:', user.data());
+      // console.log('user from db:', user.data());
       res.status(200).send(user.data());
     }
   } catch (error) {

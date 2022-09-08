@@ -1,6 +1,6 @@
 'use strict';
 
-import { firebaseAdmin, firebaseApp } from '../firebase.js';
+import { firebaseAdmin } from '../firebase.js';
 import deleteCollection from '../helpers/deleteCollection.js';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -8,15 +8,18 @@ const firestore = firebaseAdmin.firestore();
 
 const createRoom = async (req, res, next) => {
   try {
-    // name, ownerID, map, events, inviteToken, members, chat
+    // name, ownerID, map, events, inviteToken, members, chatID
     const room = req.body;
     console.log('Received room from fe:', room);
     // Reference to Firestore 'rooms' collection
     const roomsCollection = firestore.collection('rooms');
     const roomMembership = firestore.collection('roomMembership');
+    const chatsCollection = firestore.collection('chats');
 
-    // add room to DB
+    // Add room to DB
     await roomsCollection.doc(room.id).set(room);
+    // Create a document with chatID inside 'chats' collection
+    await chatsCollection.doc(room.chatID).set({ messages: [] });
 
     // update roomMembership with userID: [roomID]
     // get document with user id which contains 'rooms' reference id array
@@ -64,21 +67,26 @@ const getRoomsForUser = async (req, res, next) => {
     // Reference to Firestore collections
     const roomMembership = firestore.collection('roomMembership');
     const usersCollection = firestore.collection('users');
+    const chatsCollection = firestore.collection('chats');
 
     // firestore -> roomMembership -> userID -> rooms[roomReferences];
     // GET user document from roomMembership
     const userRef = await roomMembership.doc(userID).get();
     const roomsArray = [];
     const membersIDs = new Set();
-    const membersArray = [];
+    const chatArray = [];
 
     if (!userRef.exists || userRef.data().rooms.length === 0) {
       throw new Error('No rooms found !');
     } else {
       // GET all rooms inside user document from roomMembership
       for (const docu of userRef.data().rooms) {
-        // get room objects from DB by reference
+        // Get room objects from DB by reference
         const room = await docu.get();
+        // Get messages for each room chat
+        const chatRef = await chatsCollection.doc(room.data().chatID).get();
+        chatArray.push({ messages: chatRef.data().messages, id: chatRef.id });
+
         roomsArray.push(room.data());
         // Search for users that have the current room
         // GET the user id that has current room.id inside its rooms array
@@ -89,21 +97,24 @@ const getRoomsForUser = async (req, res, next) => {
       }
 
       // Populate membersArray with user objects
+      const membersArray = [];
       for (const id of membersIDs) {
         const user = await usersCollection.doc(id).get();
         membersArray.push({
           id: user.data().id,
           email: user.data().email,
           name: user.data().name,
+          avatar: user.data().avatar,
         });
       }
 
-      // Populate chat
-
-      // Build final rooms array which contains previously obtained room properties + members array + chat array
+      // Build final rooms array which contains previously obtained room properties + members array
       const rooms = [
         ...roomsArray.map((room) => {
-          return { ...room, members: membersArray, chat: [] };
+          const messages = chatArray.find(
+            ({ id }) => id === room.chatID
+          ).messages;
+          return { ...room, members: membersArray, messages: messages };
         }),
       ];
 
@@ -189,7 +200,8 @@ const deleteAllRooms = async (req, res, next) => {
   try {
     const isEmpty =
       (await deleteCollection(firestore, 'rooms', 3)) &&
-      (await deleteCollection(firestore, 'roomMembership', 3));
+      (await deleteCollection(firestore, 'roomMembership', 3)) &&
+      (await deleteCollection(firestore, 'chats', 3));
     if (isEmpty) res.status(202).send('All rooms have been deleted');
   } catch (error) {
     res.status(404).send(error.message);

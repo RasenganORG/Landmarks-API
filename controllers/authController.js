@@ -67,7 +67,7 @@ const login = async (req, res, next) => {
       let user;
 
       userSnapshot.forEach((doc) => (user = { ...doc.data() }));
-      console.log('user from db:', user);
+      // console.log('user from db:', user);
 
       const result = user.password === password ? user : null;
       if (result) res.status(200).send(result);

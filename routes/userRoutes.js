@@ -11,12 +11,12 @@ import {
 
 const router = express.Router();
 
-router.get('/users', getAllUsers);
-router.get('/user/:id', getUser);
+router.get('/', getAllUsers);
+router.get('/:id', getUser);
 
-router.put('/user/:id', updateUser);
+router.put('/update/:id', updateUser);
 
-router.delete('/user/:id', deleteUser);
-router.delete('/users', deleteAllUsers);
+router.delete('/delete/:id', deleteUser);
+router.delete('/deleteAll', deleteAllUsers);
 
 export default router;
