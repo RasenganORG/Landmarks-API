@@ -1,5 +1,8 @@
+'use strict';
+
 import { firebaseAdmin } from '../firebase.js';
 import { FieldValue } from 'firebase-admin/firestore';
+import deleteCollection from '../helpers/deleteCollection.js';
 
 const firestore = firebaseAdmin.firestore();
 
@@ -23,7 +26,7 @@ const addMessage = async (req, res, next) => {
   } catch (error) {}
 };
 
-const getMessages = async (req, res, next) => {
+const getMessagesByChatId = async (req, res, next) => {
   try {
     const id = req.params.id;
     const chatsCollection = firestore.collection('chats');
@@ -32,7 +35,20 @@ const getMessages = async (req, res, next) => {
       .data()
       .messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     res.status(200).send(orderedMessages);
-  } catch (error) {}
+  } catch (error) {
+    res.status(404).send(error.message);
+    console.log(error);
+  }
 };
 
-export { createChat, addMessage, getMessages };
+const deleteAllChats = async (req, res, next) => {
+  try {
+    const isEmpty = await deleteCollection(firestore, 'chats', 3);
+    if (isEmpty) res.status(202).send('All chats have been deleted');
+  } catch (error) {
+    res.status(404).send(error.message);
+    console.log(error);
+  }
+};
+
+export { createChat, addMessage, getMessagesByChatId, deleteAllChats };

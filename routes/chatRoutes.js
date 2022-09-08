@@ -2,7 +2,8 @@ import express from 'express';
 import {
   createChat,
   addMessage,
-  getMessages,
+  getMessagesByChatId,
+  deleteAllChats,
 } from '../controllers/chatController.js';
 
 const router = express.Router();
@@ -10,6 +11,8 @@ const router = express.Router();
 router.post('/chat', createChat);
 router.post('/addMessage', addMessage);
 
-router.get('/:id', getMessages);
+router.get('/:id', getMessagesByChatId);
+
+router.delete('/deleteAll', deleteAllChats);
 
 export default router;

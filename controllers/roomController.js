@@ -1,8 +1,8 @@
 'use strict';
 
 import { firebaseAdmin } from '../firebase.js';
-import deleteCollection from '../helpers/deleteCollection.js';
 import { FieldValue } from 'firebase-admin/firestore';
+import deleteCollection from '../helpers/deleteCollection.js';
 
 const firestore = firebaseAdmin.firestore();
 
