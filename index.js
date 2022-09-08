@@ -29,38 +29,87 @@ app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/chat', chatRoutes);
 
-let users = [];
-const addUser = (userId, socketId) => {
-  !users.some((user) => user.id === userId) &&
-    users.push({ id: userId, socketId });
-};
-const removeUser = (socketId) => {
-  users = users.filter((user) => user.socketId !== socketId);
+const users = [];
+
+const userJoin = (id, room, socketId, name) => {
+  const user = { id, room, socketId, name };
+  !users.some(
+    (user) => user.id === id && user.room === room && user.name === name
+  ) && users.push(user);
+  return user;
 };
 
-const getUser = (userId) => {
-  return users.find((user) => user.id === userId);
+const getCurrentUser = (socketId) => {
+  return users.find((user) => user.socketId === socketId);
 };
+
+const userLeave = (socketId) => {
+  const index = users.findIndex((user) => user.socketId === socketId);
+  if (index !== -1) {
+    return users.splice(index, 1)[0];
+  }
+};
+
+const getRoomUsers = (room) => {
+  return users.filter((user) => user.room === room);
+};
+
+const messageFormat = (messageText, sentBy) => {
+  const message = { messageText, sentBy, timestamp: new Date().toUTCString() };
+  return message;
+};
+
+const botName = 'BOT';
 
 io.on('connection', (socket) => {
   //  Connecting
   console.log('A user has connected.');
-  // take userId and socketId from user
-  socket.on('addUser', (userId) => {
-    addUser(userId, socket.id);
-    io.emit('getUsers', users);
+  // Join room
+  socket.on('joinRoom', ({ id, chatID, name }) => {
+    const user = userJoin(id, chatID, socket.id, name);
+    console.log(user);
+
+    socket.join(user.room, () => {
+      // socket.emit('getMessage', messageFormat('Welcome to Landmarks', botName));
+      // socket.broadcast
+      //   .to(user.room)
+      //   .emit('sendMessage', messageFormat(`${user.name} has joined the chat.`, botName));
+      // Send user and room info
+
+      io.to(user.room).emit('getUserRooms', {
+        room: user.room,
+        users: getRoomUsers(user.room),
+      });
+      // socket.on('sendUserRooms', () => {
+      //   const user = getCurrentUser(socket.id);
+      //   console.log(user);
+      // });
+    });
   });
 
   // Send message
   socket.on('sendMessage', ({ sentBy, messageText }) => {
-    io.emit('getMessage', { sentBy, messageText });
+    const user = getCurrentUser(socket.id);
+
+    io.to(user.room).emit('getMessage', messageFormat(messageText, user.id));
   });
 
   // Disconnecting
   socket.on('disconnect', () => {
+    const user = userLeave(socket.id);
+
+    if (user) {
+      io.to(user.room).emit(
+        'sendMessage',
+        messageFormat(`${user.name} left the chat.`, user.id)
+      );
+      io.to(user.room).emit('getUserRooms', {
+        room: user.room,
+        users: getRoomUsers(user.room),
+      });
+    }
+
     console.log('User has disconnected');
-    removeUser(socket.id);
-    io.emit('getUsers', users);
   });
 });
 

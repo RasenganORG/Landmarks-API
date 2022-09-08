@@ -31,10 +31,14 @@ const getMessagesByChatId = async (req, res, next) => {
     const id = req.params.id;
     const chatsCollection = firestore.collection('chats');
     const chatRef = await chatsCollection.doc(id).get();
-    const orderedMessages = chatRef
-      .data()
-      .messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    res.status(200).send(orderedMessages);
+    if (chatRef.exists && chatRef.data().messages) {
+      const orderedMessages = chatRef
+        .data()
+        .messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      res.status(200).send(orderedMessages);
+    } else {
+      throw new Error('No messages');
+    }
   } catch (error) {
     res.status(404).send(error.message);
     console.log(error);

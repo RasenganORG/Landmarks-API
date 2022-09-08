@@ -85,7 +85,8 @@ const getRoomsForUser = async (req, res, next) => {
         const room = await docu.get();
         // Get messages for each room chat
         const chatRef = await chatsCollection.doc(room.data().chatID).get();
-        chatArray.push({ messages: chatRef.data().messages, id: chatRef.id });
+        if (chatRef.exists && chatRef.data().messages)
+          chatArray.push({ messages: chatRef.data().messages, id: chatRef.id });
 
         roomsArray.push(room.data());
         // Search for users that have the current room
@@ -113,7 +114,7 @@ const getRoomsForUser = async (req, res, next) => {
         ...roomsArray.map((room) => {
           const messages = chatArray.find(
             ({ id }) => id === room.chatID
-          ).messages;
+          )?.messages;
           return { ...room, members: membersArray, messages: messages };
         }),
       ];
