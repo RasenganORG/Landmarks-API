@@ -16,7 +16,11 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+    ],
   },
 });
 
@@ -31,10 +35,10 @@ app.use('/api/chat', chatRoutes);
 
 const users = [];
 
-const userJoin = (id, room, socketId, name) => {
-  const user = { id, room, socketId, name };
+const userJoin = (id, chatId, socketId, name) => {
+  const user = { id, chatId, socketId, name };
   !users.some(
-    (user) => user.id === id && user.room === room && user.name === name
+    (user) => user.id === id && user.chatId === chatId && user.name === name
   ) && users.push(user);
   return user;
 };
@@ -50,12 +54,17 @@ const userLeave = (socketId) => {
   }
 };
 
-const getRoomUsers = (room) => {
-  return users.filter((user) => user.room === room);
+const getRoomUsers = (chatId) => {
+  return users.filter((user) => user.chatId === chatId);
 };
 
-const messageFormat = (messageText, sentBy) => {
-  const message = { messageText, sentBy, timestamp: new Date().toUTCString() };
+const messageFormat = (messageText, sentBy, chatId) => {
+  const message = {
+    messageText,
+    sentBy,
+    timestamp: new Date().toUTCString(),
+    chatId,
+  };
   return message;
 };
 
@@ -63,22 +72,31 @@ const botName = 'BOT';
 
 io.on('connection', (socket) => {
   //  Connecting
-  console.log('A user has connected.');
   // Join room
-  socket.on('joinRoom', ({ id, chatID, name }) => {
-    const user = userJoin(id, chatID, socket.id, name);
-    console.log(user);
+  socket.on('joinRoom', ({ id, chatId, name }) => {
+    const user = userJoin(id, chatId, socket.id, name);
+    // console.log(user);
+    console.log(`User ${name} - ${socket.id} joined chat ${chatId}`);
 
-    socket.join(user.room, () => {
+    socket.join(user.chatId, () => {
       // socket.emit('getMessage', messageFormat('Welcome to Landmarks', botName));
       // socket.broadcast
-      //   .to(user.room)
-      //   .emit('sendMessage', messageFormat(`${user.name} has joined the chat.`, botName));
-      // Send user and room info
+      //   .to(user.chatId)
+      //   .emit(
+      //     'sendMessage',
+      //     messageFormat(`${user.name} has joined the chat.`, botName)
+      //   );
+      // socket.broadcast
+      //   .to(user.chatId)
+      //   .emit(
+      //     'sendMessage',
+      //     messageFormat(`${user.name} has joined the chat.`, botName)
+      //   );
 
-      io.to(user.room).emit('getUserRooms', {
-        room: user.room,
-        users: getRoomUsers(user.room),
+      // Send user and room info
+      io.to(user.chatId).emit('getUserRooms', {
+        chatId: user.chatId,
+        users: getRoomUsers(user.chatId),
       });
       // socket.on('sendUserRooms', () => {
       //   const user = getCurrentUser(socket.id);
@@ -88,26 +106,30 @@ io.on('connection', (socket) => {
   });
 
   // Send message
-  socket.on('sendMessage', ({ sentBy, messageText }) => {
+  socket.on('sendMessage', ({ chatId, messageText }) => {
     const user = getCurrentUser(socket.id);
+    console.log(user, socket.id);
 
-    io.to(user.room).emit('getMessage', messageFormat(messageText, user.id));
+    io.to(chatId).emit(
+      'getMessage',
+      messageFormat(messageText, user.id, chatId)
+    );
   });
 
   // Disconnecting
   socket.on('disconnect', () => {
     const user = userLeave(socket.id);
 
-    if (user) {
-      io.to(user.room).emit(
-        'sendMessage',
-        messageFormat(`${user.name} left the chat.`, user.id)
-      );
-      io.to(user.room).emit('getUserRooms', {
-        room: user.room,
-        users: getRoomUsers(user.room),
-      });
-    }
+    // if (user) {
+    //   io.to(user.chatId).emit(
+    //     'sendMessage',
+    //     messageFormat(`${user.name} left the chat.`, user.id)
+    //   );
+    //   io.to(user.chatId).emit('getUserRooms', {
+    //     chatId: user.chatId,
+    //     users: getRoomUsers(user.chatId),
+    //   });
+    // }
 
     console.log('User has disconnected');
   });

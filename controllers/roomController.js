@@ -8,7 +8,7 @@ const firestore = firebaseAdmin.firestore();
 
 const createRoom = async (req, res, next) => {
   try {
-    // name, ownerID, map, events, inviteToken, members, chatID
+    // name, ownerID, map, events, inviteToken, members, chatId
     const room = req.body;
     console.log('Received room from fe:', room);
     // Reference to Firestore 'rooms' collection
@@ -18,8 +18,8 @@ const createRoom = async (req, res, next) => {
 
     // Add room to DB
     await roomsCollection.doc(room.id).set(room);
-    // Create a document with chatID inside 'chats' collection
-    await chatsCollection.doc(room.chatID).set({ messages: [] });
+    // Create a document with chatId inside 'chats' collection
+    await chatsCollection.doc(room.chatId).set({ messages: [] });
 
     // update roomMembership with userID: [roomID]
     // get document with user id which contains 'rooms' reference id array
@@ -84,7 +84,7 @@ const getRoomsForUser = async (req, res, next) => {
         // Get room objects from DB by reference
         const room = await docu.get();
         // Get messages for each room chat
-        const chatRef = await chatsCollection.doc(room.data().chatID).get();
+        const chatRef = await chatsCollection.doc(room.data().chatId).get();
         if (chatRef.exists && chatRef.data().messages)
           chatArray.push({ messages: chatRef.data().messages, id: chatRef.id });
 
@@ -113,7 +113,7 @@ const getRoomsForUser = async (req, res, next) => {
       const rooms = [
         ...roomsArray.map((room) => {
           const messages = chatArray.find(
-            ({ id }) => id === room.chatID
+            ({ id }) => id === room.chatId
           )?.messages;
           return { ...room, members: membersArray, messages: messages };
         }),

@@ -16,12 +16,12 @@ const createChat = async (req, res, next) => {
 
 const addMessage = async (req, res, next) => {
   try {
-    const { chatID, message } = req.body;
+    const { chatId, message } = req.body;
     const chatsCollection = firestore.collection('chats');
-    await chatsCollection.doc(chatID).update({
+    await chatsCollection.doc(chatId).update({
       messages: FieldValue.arrayUnion(message),
     });
-    const chatRef = await chatsCollection.doc(chatID).get();
+    const chatRef = await chatsCollection.doc(chatId).get();
     res.status(200).send(chatRef.data());
   } catch (error) {}
 };

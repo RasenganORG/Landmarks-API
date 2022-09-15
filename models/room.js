@@ -10,7 +10,7 @@ class Room {
     events,
     inviteToken,
     members,
-    chatID
+    chatId
   ) {
     this.id = id;
     this.name = name;
@@ -20,7 +20,7 @@ class Room {
     this.events = events;
     this.inviteToken = inviteToken;
     this.members = members;
-    this.chatID = chatID;
+    this.chatId = chatId;
   }
 }
 
