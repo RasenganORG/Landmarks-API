@@ -37,9 +37,8 @@ const users = [];
 
 const userJoin = (id, chatId, socketId, name) => {
   const user = { id, chatId, socketId, name };
-  !users.some(
-    (user) => user.id === id && user.chatId === chatId && user.name === name
-  ) && users.push(user);
+  !users.some((user) => user.socketId === socketId && user.chatId === chatId) &&
+    users.push(user);
   return user;
 };
 
@@ -70,66 +69,33 @@ const messageFormat = (messageText, sentBy, chatId) => {
 
 const botName = 'BOT';
 
-io.on('connection', (socket) => {
-  //  Connecting
+//  Connecting
+io.on('connection', async (socket) => {
   // Join room
-  socket.on('joinRoom', ({ id, chatId, name }) => {
+  socket.on('joinRoom', async ({ id, chatId, name }) => {
     const user = userJoin(id, chatId, socket.id, name);
-    // console.log(user);
     console.log(`User ${name} - ${socket.id} joined chat ${chatId}`);
+    await socket.join(user.chatId);
 
-    socket.join(user.chatId, () => {
-      // socket.emit('getMessage', messageFormat('Welcome to Landmarks', botName));
-      // socket.broadcast
-      //   .to(user.chatId)
-      //   .emit(
-      //     'sendMessage',
-      //     messageFormat(`${user.name} has joined the chat.`, botName)
-      //   );
-      // socket.broadcast
-      //   .to(user.chatId)
-      //   .emit(
-      //     'sendMessage',
-      //     messageFormat(`${user.name} has joined the chat.`, botName)
-      //   );
-
-      // Send user and room info
-      io.to(user.chatId).emit('getUserRooms', {
-        chatId: user.chatId,
-        users: getRoomUsers(user.chatId),
-      });
-      // socket.on('sendUserRooms', () => {
-      //   const user = getCurrentUser(socket.id);
-      //   console.log(user);
-      // });
+    // Send user and room info
+    io.to(user.chatId).emit('getUserRooms', {
+      chatId: user.chatId,
+      users: getRoomUsers(user.chatId),
     });
   });
 
   // Send message
   socket.on('sendMessage', ({ chatId, messageText }) => {
     const user = getCurrentUser(socket.id);
-    console.log(user, socket.id);
-
-    io.to(chatId).emit(
-      'getMessage',
-      messageFormat(messageText, user.id, chatId)
-    );
+    console.log(socket.id);
+    socket
+      .to(chatId)
+      .emit('getMessage', messageFormat(messageText, user.id, chatId));
   });
 
   // Disconnecting
   socket.on('disconnect', () => {
     const user = userLeave(socket.id);
-
-    // if (user) {
-    //   io.to(user.chatId).emit(
-    //     'sendMessage',
-    //     messageFormat(`${user.name} left the chat.`, user.id)
-    //   );
-    //   io.to(user.chatId).emit('getUserRooms', {
-    //     chatId: user.chatId,
-    //     users: getRoomUsers(user.chatId),
-    //   });
-    // }
 
     console.log('User has disconnected');
   });
